@@ -1,0 +1,77 @@
+%dw 2.0
+output application/json
+
+var flights = payload
+
+var dash = {
+	seats: 0,
+	revenue: 0
+}
+var d2 = {
+	united: dash,
+	american: dash,
+	delta: dash
+}
+
+fun globalRevenue(f) =
+	f reduce (f,acc=dash) -> {
+			seats: f.availableSeats + acc.seats,
+			revenue: acc.revenue + f.availableSeats * f.price
+		}
+		
+fun revByAirline(f) = reduce (f,acc=d2) -> 
+	lower(f.airlineName) match {
+		case "united" -> {
+		  "united": {
+		    "seats": f.availableSeats + acc.united.seats,
+		    "revenue": f.availableSeats * f.price + acc.united.revenue
+		  },
+		  "american": {
+		    "seats": acc.american.seats,
+		    "revenue": acc.american.revenue
+		  },
+		  "delta": {
+		    "seats": acc.delta.seats,
+		    "revenue": acc.delta.revenue
+		  }
+		}	
+		case "american" -> {
+		  "american": {
+		    "seats": f.availableSeats + acc.american.seats,
+		    "revenue": f.availableSeats * f.price + acc.american.revenue
+		  },
+		  "united": {
+		    "seats": acc.united.seats,
+		    "revenue": acc.united.revenue
+		  },
+		  "delta": {
+		    "seats": acc.delta.seats,
+		    "revenue": acc.delta.revenue
+		  }
+		}		
+		case "delta" -> {
+		  "delta": {
+		    "seats": f.availableSeats + acc.delta.seats,
+		    "revenue": f.availableSeats * f.price + acc.delta.revenue
+		  },
+		  "american": {
+		    "seats": acc.american.seats,
+		    "revenue": acc.american.revenue
+		  },
+		  "united": {
+		    "seats": acc.united.seats,
+		    "revenue": acc.united.revenue
+		  }
+		}		
+		else -> acc
+	}
+ 	
+---
+revByAirline(flights) 
+
+
+
+
+
+
+
